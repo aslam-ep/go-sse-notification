@@ -2,6 +2,8 @@ package notifications
 
 import (
 	"sync"
+
+	"github.com/aslam-ep/go-sse-notification/internal/metrics"
 )
 
 type Notification struct {
@@ -25,6 +27,7 @@ func (m *Manager) AddClient(userID string, ch chan Notification) {
 	m.Mu.Lock()
 	defer m.Mu.Unlock()
 	m.clients[userID] = append(m.clients[userID], ch)
+	metrics.ActiveClients.Inc()
 }
 
 func (m *Manager) RemoveClient(userID string, ch chan Notification) {
@@ -43,6 +46,7 @@ func (m *Manager) RemoveClient(userID string, ch chan Notification) {
 	if len(m.clients[userID]) == 0 {
 		delete(m.clients, userID)
 	}
+	metrics.ActiveClients.Dec()
 }
 
 func (m *Manager) Send(n Notification) {
@@ -53,7 +57,9 @@ func (m *Manager) Send(n Notification) {
 		for _, ch := range chans {
 			select {
 			case ch <- n:
+				metrics.MessageCount.WithLabelValues(n.UserID).Inc()
 			default: // Don't block if the client is slow
+				metrics.DroppedMessages.Inc()
 			}
 		}
 	}

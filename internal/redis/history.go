@@ -18,7 +18,7 @@ func NewHistory(c *Client) *History {
 }
 
 func (h *History) Store(ctx context.Context, n notifications.Notification) error {
-	key := fmt.Sprintf("user:%s:history", n.UserID)
+	key := fmt.Sprintf("%s:%s:history", NotificationTopic, n.UserID)
 
 	message, err := json.Marshal(n)
 	if err != nil {
@@ -37,7 +37,7 @@ func (h *History) Store(ctx context.Context, n notifications.Notification) error
 }
 
 func (h *History) FetchSince(ctx context.Context, userID string, lastSeenID int64) ([]notifications.Notification, error) {
-	key := fmt.Sprintf("user:%s:history", userID)
+	key := fmt.Sprintf("%s:%s:history", NotificationTopic, userID)
 
 	raw, err := h.rdb.RDB.LRange(ctx, key, 0, -1).Result()
 	if err != nil {
@@ -63,5 +63,5 @@ func (h *History) FetchSince(ctx context.Context, userID string, lastSeenID int6
 }
 
 func (h *History) NextID(ctx context.Context) (int64, error) {
-	return h.rdb.RDB.Incr(ctx, fmt.Sprintf("%s:seq", "notifications")).Result()
+	return h.rdb.RDB.Incr(ctx, fmt.Sprintf("%s:seq", NotificationTopic)).Result()
 }

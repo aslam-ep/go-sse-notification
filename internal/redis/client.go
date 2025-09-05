@@ -7,6 +7,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	RedisAddressPrefix = "redis://"
+
+	NotificationTopic = "notificaions"
+)
+
 type Client struct {
 	RDB *redis.Client
 }
@@ -14,7 +20,7 @@ type Client struct {
 func NewClient(address, password string, db int) *Client {
 	var rdb *redis.Client
 
-	if strings.HasPrefix(address, "redis://") {
+	if strings.HasPrefix(address, RedisAddressPrefix) {
 		opt, _ := redis.ParseURL(address)
 		rdb = redis.NewClient(opt)
 	} else {

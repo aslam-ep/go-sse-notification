@@ -4,6 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/aslam-ep/go-sse-notification/config"
 	"github.com/aslam-ep/go-sse-notification/internal/notifications"
@@ -21,7 +24,7 @@ type Server struct {
 
 // NewServer builds the server with dependencies
 func NewServer(cfg *config.Config) *Server {
-	redisClient := redis.NewClient(cfg.Redis.URL, "", 1)
+	redisClient := redis.NewClient(cfg.Redis.URL, cfg.Redis.Password, cfg.Redis.DB)
 
 	return &Server{
 		Config:  cfg,
@@ -33,8 +36,8 @@ func NewServer(cfg *config.Config) *Server {
 
 // Start boots background workers + HTTP server
 func (s *Server) Start() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	// Start background subscriber worker
 	go s.startSubscriber(ctx)
@@ -43,10 +46,23 @@ func (s *Server) Start() error {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-
 	s.registerRoutes(r)
 
-	address := s.Config.Server.Address
-	log.Printf("HTTP server listening on %s\n", address)
-	return http.ListenAndServe(address, r)
+	srv := &http.Server{
+		Addr:    s.Config.Server.Address,
+		Handler: r,
+	}
+
+	go func() {
+		<-ctx.Done()
+		log.Println("Shutting down HTTP server...")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("Gracefull shutdown failed: %v", err)
+		}
+	}()
+
+	log.Printf("HTTP server listening on %s\n", s.Config.Server.Address)
+	return srv.ListenAndServe()
 }

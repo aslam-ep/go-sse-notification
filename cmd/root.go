@@ -3,13 +3,11 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "sse-notifications",
@@ -26,27 +24,10 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Global flags
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
-
-	// env binding
-	rootCmd.PersistentFlags().String("redis-url", "redis:6379", "Redis Connection URL")
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.SetConfigName("config")
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath(".")
-	}
-
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// Load .env if exists (optional)
+	_ = godotenv.Load()
 	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

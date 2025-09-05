@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func (s *Server) registerRoutes(r *chi.Mux) {
@@ -16,4 +17,7 @@ func (s *Server) registerRoutes(r *chi.Mux) {
 	// SSE Notification endpoint
 	r.Get("/notifications", s.NotificationsHandler)
 	r.Post("/send", s.SendNotificationHandler)
+
+	// Metrics endpoint
+	r.Handle("/metrics", promhttp.Handler())
 }

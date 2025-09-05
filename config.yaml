@@ -1,5 +1,0 @@
-server:
-  address: ":8080"
-
-redis:
-  url: "redis:6379"

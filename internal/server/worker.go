@@ -6,11 +6,12 @@ import (
 	"log"
 
 	"github.com/aslam-ep/go-sse-notification/internal/notifications"
+	"github.com/aslam-ep/go-sse-notification/internal/redis"
 )
 
 // startSubscriber listens to Redis pubsub and delivers to connected clients
 func (s *Server) startSubscriber(ctx context.Context) {
-	sub := s.Redis.Subscribe(ctx, "notifications")
+	sub := s.Redis.Subscribe(ctx, redis.NotificationTopic)
 	ch := sub.Channel()
 
 	go func() {

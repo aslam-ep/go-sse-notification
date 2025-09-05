@@ -7,7 +7,6 @@ import (
 	"github.com/aslam-ep/go-sse-notification/config"
 	"github.com/aslam-ep/go-sse-notification/internal/server"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var serverCmd = &cobra.Command{
@@ -26,8 +25,4 @@ var serverCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(serverCmd)
-
-	serverCmd.Flags().String("address", ":8080", "HTTP Server Address")
-	viper.BindPFlag("redis.url", rootCmd.PersistentFlags().Lookup("redis-url"))
-	viper.BindPFlag("server.address", rootCmd.PersistentFlags().Lookup("address"))
 }
