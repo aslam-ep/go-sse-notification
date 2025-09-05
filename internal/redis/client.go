@@ -10,7 +10,7 @@ import (
 const (
 	RedisAddressPrefix = "redis://"
 
-	NotificationTopic = "notificaions"
+	NotificationTopic = "notifications"
 )
 
 type Client struct {

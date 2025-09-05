@@ -9,10 +9,7 @@ services:
       # these env names map to viper keys because of SetEnvKeyReplacer
       - REDIS_URL=redis:6379
       - SERVER_ADDR=:8080
-    volumes:
-      # optional: bind a local config.yaml into container
-      - ./config.yaml:/etc/sse/config.yaml:ro
-    command: ["./sse-notifications", "server", "--config", "/etc/sse/config.yaml"]
+    command: ["./sse-notifications", "server"]
     depends_on:
       redis:
         condition: service_healthy

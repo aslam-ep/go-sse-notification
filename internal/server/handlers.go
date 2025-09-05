@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/aslam-ep/go-sse-notification/internal/notifications"
+	"github.com/aslam-ep/go-sse-notification/internal/redis"
 )
 
 func (s *Server) NotificationsHandler(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +116,7 @@ func (s *Server) SendNotificationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	payload, _ := json.Marshal(n)
-	if err := s.Redis.Publish(ctx, "notifications", string(payload)); err != nil {
+	if err := s.Redis.Publish(ctx, redis.NotificationTopic, string(payload)); err != nil {
 		http.Error(w, "failed to push notification", http.StatusInternalServerError)
 		log.Printf("Redis Push: %s\n", err)
 		return
